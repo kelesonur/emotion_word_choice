@@ -22,18 +22,16 @@ df1 <- read_excel("culture_df.xlsx") %>% drop_na()
 
 df1$Culture %<>% dplyr::recode('1' = "German", '2' = "Turkish", '3' = "Japanese")
 
-# encode vector types
-df1$Subject %<>% as.integer()
-df1$Culture %<>%  as.factor() %>%  reorder.factor(new.order = c("Turkish","German", "Japanese"))
-df1$Question %<>% as.factor()
-df1$Dyad %<>% as.factor()
-df1$Emotion1_GALC %<>% as.factor()
-df1$Arousal_ANEW %<>%  as.factor() %>% reorder.factor(new.order = c("Low","High"))
-df1$Dominance_ANEW %<>% as.factor() %>% reorder.factor(new.order = c("Low","High"))
-
-df_model <- df1 %>% dplyr::select(Subject, Culture, Question, Arousal_ANEW, Dominance_ANEW)
-
 df_nomix <- df1 %>% subset(Dyad != "Conflict") %>% subset(Emotion1_GALC %in% c("Happiness", "Anger", "Disappointment", "Anxiety", "Shame", "Feelinglove", "Guilt", "Pride", "Sadness", "Gratitude", "Positive", "Contentment"))
+
+# encode vector types
+df_nomix$Subject %<>% as.integer()
+df_nomix$Culture %<>%  as.factor() %>%  reorder.factor(new.order = c("Turkish","German", "Japanese"))
+df_nomix$Question %<>% as.factor()
+df_nomix$Dyad %<>% as.factor()
+df_nomix$Emotion1_GALC %<>% as.factor()
+df_nomix$Arousal_ANEW %<>%  as.factor() %>% reorder.factor(new.order = c("Low","High"))
+df_nomix$Dominance_ANEW %<>% as.factor() %>% reorder.factor(new.order = c("High","Low"))
 
 #summary
 
@@ -93,45 +91,38 @@ p6 <- ggplot(dfidv) +
   theme(text=element_text(size=15))
 ggsave("p6_ills.png", plot = p6, width = 7, height = 8)
 
-df_nomix %<>% mutate(idv = case_when(
-  Culture == "German" ~ 67,
-  Culture == "Japanese" ~ 46,
-  Culture == "Turkish" ~ 37))
 
-df_nomix %<>% mutate(arousal = case_when(
-  Arousal_ANEW == "High" ~ 1,
-  Arousal_ANEW == "Low" ~ 0))
-
-
-# set contrasts for the model#
+# set contrasts for the model
 contrasts(df_nomix$Culture) <- contr.sum(3)
 contrasts(df_nomix$Dominance_ANEW) <- contr.sum(2)
 contrasts(df_nomix$Arousal_ANEW) <- contr.sum(2)
 
-
-# model for Arousal 
-
-culturem1 <- brm(Dominance_ANEW  ~ Culture,
+# model for Arousal
+culturem1 <- brm(Arousal_ANEW ~ Culture + Dominance_ANEW,
                  family = bernoulli(link = "logit"), data = df_nomix,
                  chains = 4, cores = 4)
 
-culturem2 <- brm(Arousal_ANEW ~ Culture + Dominance_ANEW,
+# model for Dominance
+df_nomix$Arousal_ANEW %<>%  as.factor() %>% reorder.factor(new.order = c("High","Low"))
+df_nomix$Baskinlik %<>% as.factor() %>% reorder.factor(new.order = c("Low","High"))
+
+culturem2 <- brm(Dominance_ANEW  ~ Culture,
                  family = bernoulli(link = "logit"), data = df_nomix,
                  chains = 4, cores = 4)
 
 #plots for model1
 
-# creating a df for the model results with the mcmc_intervals_data function. I included only the predictor estimate. SPECIAL
-dfculture_m1 <- mcmc_intervals_data(culturem2, pars = vars(starts_with("b_"))) %>% subset(parameter != "b_Intercept")
+# creating a df for the model results with the mcmc_intervals_data function. I included only the predictor estimate. 
+dfculture_m1 <- mcmc_intervals_data(culturem1, pars = vars(starts_with("b_"))) %>% subset(parameter != "b_Intercept")
 
-# recoding the predictor estimate. SPECIAL
-dfculture_m1$parameter %<>% dplyr::recode(b_CultureGerman = "German vs. Turkish",
-                                          b_CultureJapanese  = "Japanese vs. Turkish",
-                                          b_Dominance_ANEWHigh = "High Dominance",)
+# recoding the predictor estimate. 
+dfculture_m1$parameter %<>% dplyr::recode(Culture1 = "Turkish vs. Japanese",
+                                          Culture2  = "German vs. Japanese",
+                                          Dominance_ANEW1 = "High Dominance",)
 
-dfculture_m1$parameter %<>% reorder.factor(new.order = c("High Dominance", "Japanese vs. Turkish", "German vs. Turkish"))
+dfculture_m1$parameter %<>% reorder.factor(new.order = c("High Dominance", "German vs. Japanese", "Turkish vs. Japanese"))
 
-# plotting the model plot with credible intervals, and a dashed vertical line at the intercept (0). SPECIAL. Modele plot yapmak zorundna de??ilsin
+# plotting the model plot with credible intervals, and a dashed vertical line at the intercept (0). 
 p4 <- dfculture_m1 %>% ggplot(aes(m, parameter)) +
   geom_point(size = 3) +
   geom_errorbarh(aes(xmin = l, xmax = h), alpha = 1, height = 0, size = 2) +
@@ -146,16 +137,16 @@ ggsave("p4_ills.png", plot = p4, width = 6, height = 6)
 
 #plot for m2
 
-# creating a df for the model results with the mcmc_intervals_data function. I included only the predictor estimate. SPECIAL
-dfculture_m2 <- mcmc_intervals_data(culturem1, pars = vars(starts_with("b_"))) %>% subset(parameter != "b_Intercept")
+# creating a df for the model results with the mcmc_intervals_data function. I included only the predictor estimate.
+dfculture_m2 <- mcmc_intervals_data(culturem2, pars = vars(starts_with("b_"))) %>% subset(parameter != "b_Intercept")
 
-# recoding the predictor estimate. SPECIAL
-dfculture_m2$parameter %<>% dplyr::recode(b_CultureGerman = "German vs. Turkish",
-                                          b_CultureJapanese  = "Japanese vs. Turkish")
+# recoding the predictor estimate. 
+dfculture_m2$parameter %<>% dplyr::recode(Culture1 = "Turkish vs. Japanese",
+                                          Culture2  = "German vs. Japanese")
 
-dfculture_m2$parameter %<>% reorder.factor(new.order = c("Japanese vs. Turkish", "German vs. Turkish"))
+dfculture_m2$parameter %<>% reorder.factor(new.order = c("German vs. Japanese", "Turkish vs. Japanese"))
 
-# plotting the model plot with credible intervals, and a dashed vertical line at the intercept (0). SPECIAL. Modele plot yapmak zorundna de??ilsin
+# plotting the model plot with credible intervals, and a dashed vertical line at the intercept (0). 
 p5 <- dfculture_m2 %>% ggplot(aes(m, parameter)) +
   geom_point(size = 3) +
   geom_errorbarh(aes(xmin = l, xmax = h), alpha = 1, height = 0, size = 2) +
@@ -169,7 +160,7 @@ ggsave("p5_ills.png", plot = p5, width = 6, height = 6)
 
 
 
-
+#-------#
 
 
 # read the second data frame, drop NA values
