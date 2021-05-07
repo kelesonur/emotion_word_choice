@@ -18,7 +18,7 @@ library(modelr)
 library(MASS) 
 
 #read the first data frame
-dfjapan <- read_excel("emotion_ills.xlsx") %>% drop_na()
+dfjapan <- read_excel("culture_df.xlsx") %>% drop_na()
 
 dfjapan$Culture %<>% dplyr::recode('1' = "German", '2' = "Turkish", '3' = "Japanese")
 
@@ -173,7 +173,7 @@ ggsave("p5_ills.png", plot = p5, width = 6, height = 6)
 
 
 # read the second data frame, drop NA values
-df2 <- read_excel("data.exp2.xlsx" ) %>% drop_na()
+df2 <- read_excel("proficiency_df.xlsx" ) %>% drop_na()
 
 
 # encode vector types
