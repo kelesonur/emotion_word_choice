@@ -18,22 +18,22 @@ library(modelr)
 library(MASS) 
 
 #read the first data frame
-dfjapan <- read_excel("culture_df.xlsx") %>% drop_na()
+df1 <- read_excel("culture_df.xlsx") %>% drop_na()
 
-dfjapan$Culture %<>% dplyr::recode('1' = "German", '2' = "Turkish", '3' = "Japanese")
+df1$Culture %<>% dplyr::recode('1' = "German", '2' = "Turkish", '3' = "Japanese")
 
 # encode vector types
-dfjapan$Subject %<>% as.integer()
-dfjapan$Culture %<>%  as.factor() %>%  reorder.factor(new.order = c("Turkish","German", "Japanese"))
-dfjapan$Question %<>% as.factor()
-dfjapan$Dyad %<>% as.factor()
-dfjapan$Emotion1_GALC %<>% as.factor()
-dfjapan$Arousal_ANEW %<>%  as.factor() %>% reorder.factor(new.order = c("Low","High"))
-dfjapan$Dominance_ANEW %<>% as.factor() %>% reorder.factor(new.order = c("Low","High"))
+df1$Subject %<>% as.integer()
+df1$Culture %<>%  as.factor() %>%  reorder.factor(new.order = c("Turkish","German", "Japanese"))
+df1$Question %<>% as.factor()
+df1$Dyad %<>% as.factor()
+df1$Emotion1_GALC %<>% as.factor()
+df1$Arousal_ANEW %<>%  as.factor() %>% reorder.factor(new.order = c("Low","High"))
+df1$Dominance_ANEW %<>% as.factor() %>% reorder.factor(new.order = c("Low","High"))
 
-df_model <- dfjapan %>% dplyr::select(Subject, Culture, Question, Arousal_ANEW, Dominance_ANEW)
+df_model <- df1 %>% dplyr::select(Subject, Culture, Question, Arousal_ANEW, Dominance_ANEW)
 
-df_nomix <- dfjapan %>% subset(Dyad != "Conflict") %>% subset(Emotion1_GALC %in% c("Happiness", "Anger", "Disappointment", "Anxiety", "Shame", "Feelinglove", "Guilt", "Pride", "Sadness", "Gratitude", "Positive", "Contentment"))
+df_nomix <- df1 %>% subset(Dyad != "Conflict") %>% subset(Emotion1_GALC %in% c("Happiness", "Anger", "Disappointment", "Anxiety", "Shame", "Feelinglove", "Guilt", "Pride", "Sadness", "Gratitude", "Positive", "Contentment"))
 
 #summary
 
