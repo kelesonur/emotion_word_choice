@@ -103,8 +103,7 @@ culturem1 <- brm(Arousal_ANEW ~ Culture + Dominance_ANEW,
                  chains = 4, cores = 4)
 
 # model for Dominance
-df_nomix$Arousal_ANEW %<>%  as.factor() %>% reorder.factor(new.order = c("High","Low"))
-df_nomix$Baskinlik %<>% as.factor() %>% reorder.factor(new.order = c("Low","High"))
+df_nomix$Dominance_ANEW %<>% as.factor() %>% reorder.factor(new.order = c("Low","High"))
 
 culturem2 <- brm(Dominance_ANEW  ~ Culture,
                  family = bernoulli(link = "logit"), data = df_nomix,
@@ -116,8 +115,8 @@ culturem2 <- brm(Dominance_ANEW  ~ Culture,
 dfculture_m1 <- mcmc_intervals_data(culturem1, pars = vars(starts_with("b_"))) %>% subset(parameter != "b_Intercept")
 
 # recoding the predictor estimate. 
-dfculture_m1$parameter %<>% dplyr::recode(Culture1 = "Turkish vs. Japanese",
-                                          Culture2  = "German vs. Japanese",
+dfculture_m1$parameter %<>% dplyr::recode(b_Culture1 = "Turkish vs. Japanese",
+                                          b_Culture2  = "German vs. Japanese",
                                           Dominance_ANEW1 = "High Dominance",)
 
 dfculture_m1$parameter %<>% reorder.factor(new.order = c("High Dominance", "German vs. Japanese", "Turkish vs. Japanese"))
@@ -141,8 +140,8 @@ ggsave("p4_ills.png", plot = p4, width = 6, height = 6)
 dfculture_m2 <- mcmc_intervals_data(culturem2, pars = vars(starts_with("b_"))) %>% subset(parameter != "b_Intercept")
 
 # recoding the predictor estimate. 
-dfculture_m2$parameter %<>% dplyr::recode(Culture1 = "Turkish vs. Japanese",
-                                          Culture2  = "German vs. Japanese")
+dfculture_m2$parameter %<>% dplyr::recode(b_Culture1 = "Turkish vs. Japanese",
+                                          b_Culture2  = "German vs. Japanese")
 
 dfculture_m2$parameter %<>% reorder.factor(new.order = c("German vs. Japanese", "Turkish vs. Japanese"))
 
